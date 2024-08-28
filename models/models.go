@@ -15,4 +15,12 @@ type Task struct {
 	Status      string `json:"status"`
 }
 
+type User struct {
+	UID      int    `json:"u_id"`
+	Username string `json:"username"`
+	Login    string `json:"login"`
+	Password string `json:"password"`
+}
+
 var Tasks []Task
+var Users []User

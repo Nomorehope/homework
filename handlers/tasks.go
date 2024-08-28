@@ -13,7 +13,7 @@ func TasksList(ctx *gin.Context) {
 }
 
 func GetTask(ctx *gin.Context) {
-	idParam := ctx.Param("t_id")
+	idParam := ctx.Param("id")
 	t_id, error := strconv.Atoi(idParam)
 	if error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
@@ -86,4 +86,34 @@ func DeleteTask(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+}
+
+func ListUsers(ctx *gin.Context) {
+	ctx.JSON(http.StatusOK, models.Users)
+}
+
+func GetUser(ctx *gin.Context) {
+	idUser := ctx.Param("id")
+	id, error := strconv.Atoi(idUser)
+	if error != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
+		return
+	}
+	for _, user := range models.Users {
+		if user.UID == id {
+			ctx.JSON(http.StatusOK, user)
+			return
+		}
+	}
+}
+
+func NewUser(ctx *gin.Context) {
+	var user models.User
+	if error := ctx.ShouldBindJSON(&user); error != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": error.Error()})
+		return
+	}
+	user.UID = len(models.Users) + 1
+	models.Users = append(models.Users, user)
+	ctx.JSON(http.StatusCreated, user)
 }

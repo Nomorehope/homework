@@ -15,5 +15,9 @@ func main() {
 	r.PUT("/tasks/:id", handlers.UpdateTask)
 	r.DELETE("/tasks/:id", handlers.DeleteTask)
 
+	r.GET("/users", handlers.ListUsers)
+	r.GET("/users/:id", handlers.GetUser)
+	r.POST("/users", handlers.NewUser)
+
 	r.Run(":8080")
 }
