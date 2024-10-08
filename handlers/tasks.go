@@ -6,13 +6,18 @@ import (
 
 	"github.com/Nomorehope/homework/models"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func TasksList(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, models.Tasks)
+	db := ctx.MustGet("db").(*gorm.DB)
+	var tasks []models.Task
+	db.Find(&tasks)
+	ctx.JSON(http.StatusOK, tasks)
 }
 
 func GetTask(ctx *gin.Context) {
+	db := ctx.MustGet("db").(*gorm.DB)
 	idParam := ctx.Param("id")
 	t_id, error := strconv.Atoi(idParam)
 	if error != nil {
@@ -20,138 +25,140 @@ func GetTask(ctx *gin.Context) {
 		return
 	}
 
-	for _, task := range models.Tasks {
-		if task.Task_id == t_id {
-			ctx.JSON(http.StatusOK, task)
-			return
-		}
+	var task models.Task
+	if result := db.First(&task, t_id); result.Error != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		return
 	}
 
-	ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+	ctx.JSON(http.StatusOK, task)
+
 }
 
 func CreateTask(ctx *gin.Context) {
+	db := ctx.MustGet("db").(*gorm.DB)
 	var task models.Task
 	if err := ctx.ShouldBindJSON(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	task.Task_id = len(models.Tasks) + 1
-	models.Tasks = append(models.Tasks, task)
+	db.Create(&task) // Сохраняем задачу в базе данных
 	ctx.JSON(http.StatusCreated, task)
 }
 
 func UpdateTask(ctx *gin.Context) {
+	db := ctx.MustGet("db").(*gorm.DB)
 	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	t_id, err := strconv.Atoi(idParam)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
 
-	var updatedTask models.Task
-	if err := ctx.ShouldBindJSON(&updatedTask); err != nil {
+	var task models.Task
+	if err := db.First(&task, t_id); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Task not found"})
+		return
+	}
+
+	if err := ctx.ShouldBindJSON(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	for i, task := range models.Tasks {
-		if task.Task_id == id {
-			updatedTask.Task_id = id
-			models.Tasks[i] = updatedTask
-			ctx.JSON(http.StatusOK, updatedTask)
-			return
-		}
-	}
-
-	ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
-
+	db.Save(&task)
+	ctx.JSON(http.StatusOK, task)
 }
 
 func DeleteTask(ctx *gin.Context) {
+	db := ctx.MustGet("db").(*gorm.DB)
+	var task models.Task
+
 	idParam := ctx.Param("id")
 	id, err := strconv.Atoi(idParam)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
 	}
-
-	for i, task := range models.Tasks {
-		if task.Task_id == id {
-			models.Tasks = append(models.Tasks[:i], models.Tasks[i+1:]...)
-			ctx.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
-			return
-		}
+	if err := db.First(&task, id); err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		return
 	}
+	db.Delete(&task)
+	ctx.JSON(http.StatusOK, gin.H{"message": "Task deleted"})
 
-	ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
 }
 
 func ListUsers(ctx *gin.Context) {
-	ctx.JSON(http.StatusOK, models.Users)
+	db := ctx.MustGet("db").(*gorm.DB)
+	var users []models.User
+	db.Find(&users)
+	ctx.JSON(http.StatusOK, users)
 }
 
 func GetUser(ctx *gin.Context) {
+	db := ctx.MustGet("db").(*gorm.DB)
 	idUser := ctx.Param("id")
-	id, error := strconv.Atoi(idUser)
+	u_id, error := strconv.Atoi(idUser)
 	if error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
 		return
 	}
-	for _, user := range models.Users {
-		if user.UID == id {
-			ctx.JSON(http.StatusOK, user)
-			return
-		}
+	var user models.User
+	if result := db.First(&user, u_id); result.Error != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
 	}
+
+	ctx.JSON(http.StatusOK, user)
 }
 
 func NewUser(ctx *gin.Context) {
+	db := ctx.MustGet("db").(*gorm.DB)
 	var user models.User
 	if error := ctx.ShouldBindJSON(&user); error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": error.Error()})
 		return
 	}
-	user.UID = len(models.Users) + 1
-	models.Users = append(models.Users, user)
+	db.Create(&user)
 	ctx.JSON(http.StatusCreated, user)
 }
 
 func UpdateUser(ctx *gin.Context) {
+	db := ctx.MustGet("db").(*gorm.DB)
 	idParam := ctx.Param("id") // idUser
-	id, err := strconv.Atoi(idParam)
+	u_id, err := strconv.Atoi(idParam)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
 		return
 	}
-	var updatedUser models.User
-	if err := ctx.ShouldBindJSON(&updatedUser); err != nil {
+	var user models.User
+	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}) // err.Error()
 		return
 	}
-	for i, user := range models.Users {
-		if user.UID == id {
-			updatedUser.UID = id
-			models.Users[i] = updatedUser
-			ctx.JSON(http.StatusOK, updatedUser)
-			return
-		}
+	if err := db.First(&user, u_id); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
+		return
 	}
-	ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+	db.Save(&user)
+	ctx.JSON(http.StatusOK, user)
 }
 
 func DeleteUser(ctx *gin.Context) {
-	idParam := ctx.Param("id") // idUser
-	id, err := strconv.Atoi(idParam)
+	db := ctx.MustGet("db").(*gorm.DB)
+	idParam := ctx.Param("id")
+	u_id, err := strconv.Atoi(idParam)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
+		return
 	}
-	for i, user := range models.Users {
-		if user.UID == id {
-			models.Users = append(models.Users[:i], models.Users[i+1:]...) // remove user
-			ctx.JSON(http.StatusOK, gin.H{"message": "User deleted"})      // return message
-			return
-		}
+
+	var user models.User
+	if result := db.First(&user, u_id); result.Error != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		return
 	}
+
+	db.Delete(&user) // Удаляем пользователя
+	ctx.JSON(http.StatusOK, gin.H{"message": "User deleted"})
 }
