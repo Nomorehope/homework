@@ -18,6 +18,8 @@ func main() {
 	r.GET("/users", handlers.ListUsers)
 	r.GET("/users/:id", handlers.GetUser)
 	r.POST("/users", handlers.NewUser)
+	r.PUT("/users/:id", handlers.UpdateUser) // TODO: сделать обновление
+	r.DELETE("users/:id", handlers.DeleteUser)
 
 	r.Run(":8080")
 }

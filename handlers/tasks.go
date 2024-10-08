@@ -117,3 +117,41 @@ func NewUser(ctx *gin.Context) {
 	models.Users = append(models.Users, user)
 	ctx.JSON(http.StatusCreated, user)
 }
+
+func UpdateUser(ctx *gin.Context) {
+	idParam := ctx.Param("id") // idUser
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
+		return
+	}
+	var updatedUser models.User
+	if err := ctx.ShouldBindJSON(&updatedUser); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}) // err.Error()
+		return
+	}
+	for i, user := range models.Users {
+		if user.UID == id {
+			updatedUser.UID = id
+			models.Users[i] = updatedUser
+			ctx.JSON(http.StatusOK, updatedUser)
+			return
+		}
+	}
+	ctx.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+}
+
+func DeleteUser(ctx *gin.Context) {
+	idParam := ctx.Param("id") // idUser
+	id, err := strconv.Atoi(idParam)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
+	}
+	for i, user := range models.Users {
+		if user.UID == id {
+			models.Users = append(models.Users[:i], models.Users[i+1:]...) // remove user
+			ctx.JSON(http.StatusOK, gin.H{"message": "User deleted"})      // return message
+			return
+		}
+	}
+}
