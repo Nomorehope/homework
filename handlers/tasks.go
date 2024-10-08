@@ -6,6 +6,7 @@ import (
 
 	"github.com/Nomorehope/homework/models"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +20,7 @@ func TasksList(ctx *gin.Context) {
 func GetTask(ctx *gin.Context) {
 	db := ctx.MustGet("db").(*gorm.DB)
 	idParam := ctx.Param("id")
-	t_id, error := strconv.Atoi(idParam)
+	t_id, error := uuid.Parse(idParam)
 	if error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
@@ -36,12 +37,14 @@ func GetTask(ctx *gin.Context) {
 }
 
 func CreateTask(ctx *gin.Context) {
-	db := ctx.MustGet("db").(*gorm.DB)
 	var task models.Task
 	if err := ctx.ShouldBindJSON(&task); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	task.Task_id = uuid.New()
+	db := ctx.MustGet("db").(*gorm.DB)
+
 	db.Create(&task) // Сохраняем задачу в базе данных
 	ctx.JSON(http.StatusCreated, task)
 }
@@ -49,7 +52,7 @@ func CreateTask(ctx *gin.Context) {
 func UpdateTask(ctx *gin.Context) {
 	db := ctx.MustGet("db").(*gorm.DB)
 	idParam := ctx.Param("id")
-	t_id, err := strconv.Atoi(idParam)
+	t_id, err := uuid.Parse(idParam)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
@@ -74,7 +77,7 @@ func DeleteTask(ctx *gin.Context) {
 	var task models.Task
 
 	idParam := ctx.Param("id")
-	id, err := strconv.Atoi(idParam)
+	id, err := uuid.Parse(idParam)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid task ID"})
 		return
@@ -98,7 +101,7 @@ func ListUsers(ctx *gin.Context) {
 func GetUser(ctx *gin.Context) {
 	db := ctx.MustGet("db").(*gorm.DB)
 	idUser := ctx.Param("id")
-	u_id, error := strconv.Atoi(idUser)
+	u_id, error := uuid.Parse(idUser)
 	if error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user id"})
 		return
@@ -113,12 +116,14 @@ func GetUser(ctx *gin.Context) {
 }
 
 func NewUser(ctx *gin.Context) {
-	db := ctx.MustGet("db").(*gorm.DB)
+
 	var user models.User
 	if error := ctx.ShouldBindJSON(&user); error != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": error.Error()})
 		return
 	}
+	user.UID = uuid.New()
+	db := ctx.MustGet("db").(*gorm.DB)
 	db.Create(&user)
 	ctx.JSON(http.StatusCreated, user)
 }
@@ -147,7 +152,7 @@ func UpdateUser(ctx *gin.Context) {
 func DeleteUser(ctx *gin.Context) {
 	db := ctx.MustGet("db").(*gorm.DB)
 	idParam := ctx.Param("id")
-	u_id, err := strconv.Atoi(idParam)
+	u_id, err := uuid.Parse(idParam)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid user ID"})
 		return

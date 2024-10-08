@@ -1,19 +1,21 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"github.com/google/uuid"
+)
 
 type Status string
 
 type Task struct {
-	gorm.Model
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Status      Status `json:"status"`
+	Task_id     uuid.UUID `json:"t_id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	Title       string    `json:"title"`
+	Description string    `json:"description"`
+	Status      Status    `json:"status"`
 }
 
 type User struct {
-	gorm.Model
-	Username string `json:"username"`
-	Login    string `json:"login"`
-	Password string `json:"password"`
+	UID      uuid.UUID `json:"u_id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	Username string    `json:"username"`
+	Login    string    `json:"login"`
+	Password string    `json:"password"`
 }
