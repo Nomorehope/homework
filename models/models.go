@@ -14,8 +14,8 @@ type Task struct {
 }
 
 type User struct {
-	UID      uuid.UUID `json:"u_id" gorm:"type:uuid;default:uuid_generate_v4();primaryKey"`
+	UID      uuid.UUID `gorm:"type:uuid;default:uuid_generate_v4()" json:"u_id"`
 	Username string    `json:"username"`
 	Login    string    `json:"login"`
-	Password string    `json:"-"`
+	Password string    `json:"password"`
 }
