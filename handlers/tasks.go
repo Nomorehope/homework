@@ -7,6 +7,7 @@ import (
 	"github.com/Nomorehope/homework/models"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -122,10 +123,20 @@ func NewUser(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": error.Error()})
 		return
 	}
-	user.UID = uuid.New()
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost) // Создание хэша пароля
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+	user.Password = string(hashedPassword) // Сохраняем пароль в базе данных
+	user.UID = uuid.New()                  // Генерация UUID пользователя
+
 	db := ctx.MustGet("db").(*gorm.DB)
-	db.Create(&user)
-	ctx.JSON(http.StatusCreated, user)
+	if err := db.Create(&user).Error; err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+		return
+	}
+	ctx.JSON(http.StatusCreated, gin.H{"message": "User created", "user": user})
 }
 
 func UpdateUser(ctx *gin.Context) {

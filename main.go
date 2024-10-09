@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"gorm.io/driver/postgres"
-	"gorm.io/gorm" // TODO: добавить в зависимости
+	"gorm.io/gorm"
 
 	"github.com/Nomorehope/homework/handlers"
 	"github.com/Nomorehope/homework/models"
